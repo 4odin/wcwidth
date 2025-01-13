@@ -9,8 +9,8 @@ package wcwidth
  *
  */
 
-import "core:unicode/utf8"
 import "core:strings"
+import "core:unicode/utf8"
 
 Interval :: struct {
 	first, last: rune,
@@ -48,7 +48,7 @@ wcwidth :: proc(r: rune) -> int {
 	// less than 1% impact to others.
 	if 32 <= r && r < 0x7f do return 1
 
-	// C0/C1 control characters are -1 for compatibility with POSIX-like calls
+	// C0/C1 control runes are -1 for compatibility with POSIX-like calls
 	if r < 32 || (0x07F <= r && r < 0x0A0) do return -1
 
 	// Zero width
@@ -71,24 +71,24 @@ wcswidth :: proc(s: string) -> int {
 	for idx < end {
 		r := runes[idx]
 		if r == '\u200D' {
-			// Zero Width Joiner, do not measure this or next character
+			// Zero Width Joiner, do not measure this or next rune
 			idx += 2
 			continue
 		}
 		if r == '\uFE0F' && last_measured != 0 {
-			// on variation selector 16 (VS16) following another character,
-			// conditionally add '1' to the measured width if that character is
-			// known to be converted from narrow to wide by the VS16 character.
+			// on variation selector 16 (VS16) following another rune,
+			// conditionally add '1' to the measured width if that rune is
+			// known to be converted from narrow to wide by the VS16 rune.
 			width += bisearch(last_measured, VS16_NARROW_TO_WIDE) ? 1 : 0
 			last_measured = 0
 			idx += 1
 			continue
 		}
-		// measure character at current index
+		// measure rune at current index
 		wcw := wcwidth(r)
-		// early return -1 on C0 and C1 control characters
+		// early return -1 on C0 and C1 control runes
 		if wcw < 0 do return wcw
-		// track last character measured to contain a cell, so that
+		// track last rune measured to contain a cell, so that
 		// subsequent VS-16 modifiers may be understood
 		if wcw > 0 do last_measured = r
 
